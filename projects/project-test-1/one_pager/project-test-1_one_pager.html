@@ -1,0 +1,155 @@
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, .root { font-family: 'Inter', sans-serif; background: #fff; color: #111; }
+    .page { max-width: 780px; margin: 0 auto; padding: 48px 40px; }
+  
+    .top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 36px; border-bottom: 2px solid #111; padding-bottom: 16px; }
+    .company-name { font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #111; }
+    .doc-meta { text-align: right; font-size: 11px; color: #888; font-family: 'JetBrains Mono', monospace; line-height: 1.7; }
+  
+    .project-label { font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: #f5a81e; margin-bottom: 10px; }
+    .title { font-size: 32px; font-weight: 600; color: #111; line-height: 1.2; margin-bottom: 6px; }
+    .subtitle { font-size: 14px; color: #666; font-weight: 400; margin-bottom: 32px; }
+  
+    .divider { height: 1px; background: #e5e5e5; margin: 24px 0; }
+  
+    .section-label { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #bbb; margin-bottom: 10px; }
+    .section-title { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 8px; }
+    .body-text { font-size: 13.5px; color: #444; line-height: 1.75; }
+    .body-text strong { color: #111; font-weight: 500; }
+  
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  
+    .item { margin-bottom: 14px; }
+    .item-head { font-size: 13px; font-weight: 500; color: #111; margin-bottom: 3px; }
+    .item-body { font-size: 12.5px; color: #666; line-height: 1.6; }
+  
+    .tag { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; margin-right: 4px; margin-bottom: 4px; }
+    .tag-amber  { background: #fff8e6; color: #b07a00; border: 1px solid #f5d080; }
+    .tag-blue   { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .tag-red    { background: #fff1f1; color: #b91c1c; border: 1px solid #fecaca; }
+    .tag-green  { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .tag-gray   { background: #f5f5f5; color: #555; border: 1px solid #ddd; }
+  
+    .phase-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .phase-box { border: 1px solid #e5e5e5; border-radius: 6px; padding: 14px 16px; }
+    .phase-num { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #bbb; margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+    .phase-title { font-size: 13px; font-weight: 500; color: #111; margin-bottom: 4px; }
+    .phase-body { font-size: 12px; color: #777; line-height: 1.6; }
+  
+    .footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid #e5e5e5; display: flex; justify-content: space-between; font-size: 11px; color: #bbb; font-family: 'JetBrains Mono', monospace; }
+  </style>
+  
+  <div class="root">
+  <div class="page">
+  
+    <div class="top-bar">
+      <div class="company-name">Acme Markets · Internal</div>
+      <div class="doc-meta">Project Proposal<br>June 2026 · v0.1 Draft<br>Confidential</div>
+    </div>
+  
+    <div class="project-label">Risk Infrastructure</div>
+    <div class="title">Circuit Breaker System</div>
+    <div class="subtitle">Automated price monitoring, trade halts, and withdrawal controls across Crypto, Gold, and FX</div>
+  
+    <div class="divider"></div>
+  
+    <!-- PROBLEM STATEMENT -->
+    <div class="section-label">Problem Statement</div>
+    <div class="body-text">
+      As a multi-asset market maker offering <strong>Crypto, Gold (XAU), and FX</strong> trading through a proprietary app platform, the firm operates in markets with vastly different volatility profiles — from 24/7 crypto with thin liquidity windows, to macro-sensitive FX pairs and safe-haven gold demand spikes. Today, there is <strong>no automated mechanism</strong> to detect abnormal price movements or user behaviour and respond in time to prevent cascading losses. A single volatile event can expose the platform to unhedged market-making risk, trigger irrational user behaviour, and result in regulatory and reputational damage. <strong>Manual intervention is too slow</strong> and operationally unsustainable at scale.
+    </div>
+  
+    <div class="divider"></div>
+  
+    <!-- OBJECTIVES -->
+    <div class="two-col">
+      <div>
+        <div class="section-label">Objectives</div>
+        <div class="item">
+          <div class="item-head">Real-time price surveillance</div>
+          <div class="item-body">Monitor live feeds across all asset classes and detect abnormal price velocity, spread widening, or feed staleness within seconds.</div>
+        </div>
+        <div class="item">
+          <div class="item-head">Asset-level circuit breakers</div>
+          <div class="item-body">Automatically halt or restrict trading on a specific instrument when market conditions breach defined thresholds — independently per asset class.</div>
+        </div>
+        <div class="item">
+          <div class="item-head">User-level circuit breakers</div>
+          <div class="item-body">Apply per-account controls — trade pauses, withdrawal halts, or reduce-only mode — when a user's activity or loss profile triggers risk limits.</div>
+        </div>
+        <div class="item">
+          <div class="item-head">Platform-wide safety net</div>
+          <div class="item-body">A global breaker triggered when aggregate platform exposure or drawdown exceeds firm-wide risk thresholds, escalating to senior ops and risk teams.</div>
+        </div>
+      </div>
+  
+      <div>
+        <div class="section-label">Scope of Coverage</div>
+        <div class="item">
+          <div class="item-head">Crypto</div>
+          <div class="item-body">BTC, ETH, SOL and major pairs. Highest volatility. 24/7 trading with no natural market close. Requires tightest latency SLAs.</div>
+        </div>
+        <div class="item">
+          <div class="item-head">Gold (XAU/USD)</div>
+          <div class="item-body">Spot and synthetic gold. Prone to sharp safe-haven demand spikes during macro events. Breakers tied to intraday % moves.</div>
+        </div>
+        <div class="item">
+          <div class="item-head">FX Pairs</div>
+          <div class="item-body">Major and minor pairs (EUR/USD, GBP/USD, USD/JPY). Tight spreads with event-driven dislocation risk around central bank announcements.</div>
+        </div>
+        <div style="margin-top: 16px;">
+          <div class="section-label">Enforcement Actions</div>
+          <div style="margin-top: 6px;">
+            <span class="tag tag-red">Trade Halt</span>
+            <span class="tag tag-amber">Withdrawal Freeze</span>
+            <span class="tag tag-blue">Spread Widening</span>
+            <span class="tag tag-green">Reduce-Only Mode</span>
+            <span class="tag tag-gray">Quote Suspension</span>
+            <span class="tag tag-gray">Compliance Flag</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div class="divider"></div>
+  
+    <!-- PROPOSED APPROACH -->
+    <div class="section-label">Proposed Approach</div>
+    <div class="body-text" style="margin-bottom: 16px;">
+      Build a dedicated <strong>Circuit Breaker Service</strong> that sits between price feed ingestion and the order/withdrawal management layer. It applies a configurable, tiered rules engine — evaluating conditions at the asset level and user level independently — and enforces halts with sub-100ms latency. All events are logged to an immutable audit trail for compliance and post-incident review.
+    </div>
+  
+    <div class="divider"></div>
+  
+    <!-- DELIVERY -->
+    <div class="section-label">Delivery Phases</div>
+    <div class="phase-row">
+      <div class="phase-box">
+        <div class="phase-num">Phase 1 · Weeks 1–4</div>
+        <div class="phase-title">Foundation</div>
+        <div class="phase-body">Price feed pipeline, anomaly detection, asset-level breakers (L1/L2), ops monitoring dashboard.</div>
+      </div>
+      <div class="phase-box">
+        <div class="phase-num">Phase 2 · Weeks 5–8</div>
+        <div class="phase-title">User Controls</div>
+        <div class="phase-body">Per-user risk tiers, loss and withdrawal breach triggers, alert and notification layer, compliance flagging.</div>
+      </div>
+      <div class="phase-box">
+        <div class="phase-num">Phase 3 · Weeks 9–12</div>
+        <div class="phase-title">Platform Hardening</div>
+        <div class="phase-body">Platform-wide aggregate breaker, config UI for ops, audit logs, full UAT in staging environment.</div>
+      </div>
+    </div>
+  
+    <div class="footer">
+      <span>Circuit Breaker System · Project One-Pager</span>
+      <span>Confidential · June 2026</span>
+    </div>
+  
+  </div>
+  </div>
+  

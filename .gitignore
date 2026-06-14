@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+test-*
+
+slack-bot-config.json
+
+open-router-api-key.json

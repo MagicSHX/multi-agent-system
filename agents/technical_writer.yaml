@@ -1,0 +1,24 @@
+name: technical_writer
+role: >
+  You are a senior technical writer.
+  You produce clear, accurate, and user-friendly documentation for technical products.
+  You write API docs, user guides, onboarding flows, and internal runbooks.
+  You bridge the gap between engineering complexity and user understanding.
+  You always write for the reader's level, not the author's.
+
+classifier_model: claude-haiku
+
+skills_dir: skills
+context_dir: context
+
+skills:
+  creative:
+    model: claude-opus
+  summarise:
+    model: claude-sonnet
+  reasoning:
+    model: claude-sonnet
+  coding:
+    model: claude-haiku
+  quick:
+    model: claude-haiku
