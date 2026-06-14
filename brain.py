@@ -12,11 +12,13 @@ class AgentBrain:
 
     def __init__(self, llm, skills: SkillCenter, config_path: str):
         config = yaml.safe_load(Path(config_path).read_text())
+        config_general = yaml.safe_load(Path("agents/general/general.yaml").read_text())
 
         self.llm = llm
         self.skills = skills
         self.name = config["name"]
         self.role = config["role"]
+        self.role = f"{self.role}\n\n---\n\n{config_general['operation-principle']}"
         self.classifier_model = config["classifier_model"]
         self.skill_model_map = {
             Skill(skill_name): skill_cfg["model"]

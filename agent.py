@@ -14,7 +14,7 @@ class Agent(threading.Thread):
         config = yaml.safe_load(Path(config_path).read_text())
 
         self.name = config["name"]
-        self.llm = LLMCenter()
+        self.llm = LLMCenter(called_by=self.name)
         self.skills = SkillCenter(
             skills_dir=config.get("skills_dir", "skills"),
             context_dir=config.get("context_dir", "context"),
@@ -24,8 +24,9 @@ class Agent(threading.Thread):
             skills=self.skills,
             config_path=config_path,
         )
-        self.memory = []
+        self.memory = {}
 
+    # TODO: later need to scale up at project and task level, not just one global memory for the agent. Now, if there are multiple projects, the brain handling is in scequence, not in parallel.
     def process(self):
         """Drain this agent's process queue, run through brain, push to response queue."""
         while True:
@@ -39,9 +40,11 @@ class Agent(threading.Thread):
 
                 # TODO: need to optimise this part to save tokens, e.g.: use a small model to summarise each time
                 reply = self.brain.run(
-                    user_input=f"{text}; project context: project one pager: {project_context.one_pager}; current agent project memory: {self.memory}"
+                    user_input=f"{text}; project context: project one pager: {project_context.one_pager}; current agent project memory: {self.memory.get(project, [])}",
                 )
-                self.memory.append(event)
+                if project not in self.memory:
+                    self.memory[project] = []
+                self.memory[project].append(event)
                 if reply and reply.strip().lower() != "no":
                     globalVar.slack_msg_response_queue[self.name].put(
                         {
