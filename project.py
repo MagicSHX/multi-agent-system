@@ -8,7 +8,7 @@ class ProjectCenter:
     Agents can add features to the project over time.
     """
 
-    SUPPORTED_EXTENSIONS = {".md", ".html"}
+    SUPPORTED_EXTENSIONS = {".md"}
 
     def __init__(self, name: str):
         self.name = name
@@ -26,16 +26,14 @@ class ProjectCenter:
 
     # ── One Pager ─────────────────────────────────────────────────────────────
 
-    def _resolve_one_pager_path(self) -> Path:
-        """Return the first matching one-pager file, preferring .md over .html."""
+    def _resolve_one_pager_path(self) -> Path | None:
+        """Return the first matching one-pager file (.md only)."""
         base_dir = self.project_dir / "one_pager"
-        for ext in (".md", ".html"):
-            candidate = base_dir / f"{self.name}_one_pager{ext}"
-            if candidate.exists():
-                return candidate
+        candidate = base_dir / f"{self.name}_one_pager.md"
+        return candidate if candidate.exists() else None
 
     def _load_one_pager(self) -> str:
-        if self.one_pager_path.exists():
+        if self.one_pager_path and self.one_pager_path.exists():
             return self.one_pager_path.read_text()
         return ""
 

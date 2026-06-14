@@ -24,9 +24,10 @@ class Agent(threading.Thread):
             skills=self.skills,
             config_path=config_path,
         )
-        self.memory = {}
+        self.memory = {}                     # raw event history per project
+        self.summarised_project_memory = {}  # cheap-model condensed bullets per project
 
-    # TODO: later need to scale up at project and task level, not just one global memory for the agent. Now, if there are multiple projects, the brain handling is in scequence, not in parallel.
+    # TODO: later need to scale up at project and task level, not just one global memory for the agent. Now, if there are multiple projects, the brain handling is in sequence, not in parallel.
     def process(self):
         """Drain this agent's process queue, run through brain, push to response queue."""
         while True:
@@ -38,13 +39,19 @@ class Agent(threading.Thread):
 
                 project_context = globalVar.project_context.get(project)
 
-                # TODO: need to optimise this part to save tokens, e.g.: use a small model to summarise each time
-                reply = self.brain.run(
-                    user_input=f"{text}; project context: project one pager: {project_context.one_pager}; current agent project memory: {self.memory.get(project, [])}",
+                # step 1 — good model: classify + run skill, plain string reply
+                # prefer summarised memory if available, fall back to raw history
+                memory_for_context = self.summarised_project_memory.get(
+                    project, self.memory.get(project, [])
                 )
-                if project not in self.memory:
-                    self.memory[project] = []
-                self.memory[project].append(event)
+                reply = self.brain.run(
+                    user_input=(
+                        f"{text}; project context: project one pager: {project_context.one_pager}; "
+                        f"current agent project memory: {memory_for_context}"
+                    ),
+                )
+
+                # step 2 — post reply to Slack
                 if reply and reply.strip().lower() != "no":
                     globalVar.slack_msg_response_queue[self.name].put(
                         {
@@ -53,6 +60,20 @@ class Agent(threading.Thread):
                             "thread_ts": event.get("ts"),
                         }
                     )
+
+                # step 3 — append raw event to memory log
+                if project not in self.memory:
+                    self.memory[project] = []
+                self.memory[project].append(event)
+
+                # step 4 — cheap model: condense into summarised memory bullets
+                self.summarised_project_memory[project] = self.brain.summarise_for_memory(
+                    user_message=text,
+                    agent_reply=reply or "",
+                    existing_memory=self.summarised_project_memory.get(project, []),
+                    project=project,
+                )
+
             except Exception as e:
                 print(f"[{self.name}] Error processing message: {e}")
             finally:
