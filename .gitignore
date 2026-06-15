@@ -222,5 +222,6 @@ test-*
 slack-bot-config.json
 
 open-router-api-key.json
+open-router-api-key-pluang.json
 
 logs/*

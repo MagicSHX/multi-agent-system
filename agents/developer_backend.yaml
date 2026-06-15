@@ -13,7 +13,7 @@ context_dir: context
 
 skills:
   coding:
-    model: claude-opus
+    model: claude-sonnet
   reasoning:
     model: deepseek-r1
   summarise:
