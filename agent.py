@@ -1,3 +1,4 @@
+import re
 import threading
 import yaml
 from pathlib import Path
@@ -6,6 +7,38 @@ from llm import LLMCenter
 from skill import Skill, SkillCenter
 from brain import AgentBrain
 from config import globalVar
+
+
+# Slack user IDs of the agents — mirrors the roster in agents/project_lead.yaml.
+# Used to (a) avoid greeting/re-pinging a bot sender and (b) cap each outgoing
+# message to one agent mention so only one agent is triggered at a time.
+AGENT_SLACK_IDS = {
+    "U0B9K560933",  # project_lead
+    "U0B9K3QQW57",  # research
+    "U0BAD9MHY06",  # architect
+    "U0BA90P4MEF",  # marketing
+    "U0B9K5ZLMS5",  # developer
+    "U0BA90EM1FV",  # tester
+}
+
+_MENTION_RE = re.compile(r"<@([A-Z0-9]+)(?:\|[^>]+)?>")
+
+
+def limit_to_one_agent_mention(text: str) -> str:
+    """Keep only the FIRST agent mention; strip any further agent mentions so a
+    single Slack message triggers at most one agent. Human mentions are left
+    untouched."""
+    used = False
+
+    def _repl(m):
+        nonlocal used
+        if m.group(1) in AGENT_SLACK_IDS:
+            if used:
+                return ""
+            used = True
+        return m.group(0)
+
+    return _MENTION_RE.sub(_repl, text)
 
 
 class Agent(threading.Thread):
@@ -35,7 +68,8 @@ class Agent(threading.Thread):
             try:
                 text = event.get("text", "")
                 user = event.get("user", "")
-                project = "project-test-1"  # TODO
+                # project = "project-test-1"  # TODO
+                project = "gamified-trading-cards"  # TODO
 
                 project_context = globalVar.project_context.get(project)
 
@@ -52,11 +86,18 @@ class Agent(threading.Thread):
                 )
 
                 # step 2 — post reply to Slack
+                # - cap to a single agent mention (one agent triggered per message)
+                # - only greet/ping the sender if it is a human, never a bot agent
                 if reply and reply.strip().lower() != "no":
+                    safe_reply = limit_to_one_agent_mention(reply)
+                    if user and user not in AGENT_SLACK_IDS:
+                        out_text = f"Hi <@{user}>! {safe_reply}"
+                    else:
+                        out_text = safe_reply
                     globalVar.slack_msg_response_queue[self.name].put(
                         {
                             "project": project,
-                            "text": f"Hi <@{user}>! {reply}",
+                            "text": out_text,
                             "thread_ts": event.get("ts"),
                         }
                     )
@@ -84,7 +125,7 @@ class Agent(threading.Thread):
 
 
 if __name__ == "__main__":
-    agent = Agent(config_path="agent/researcher.yaml")
+    agent = Agent(config_path="agents/researcher.yaml")
     answer = agent.brain.run(
         "What are circuit breaker logic used in other market making exchange?"
     )

@@ -1,8 +1,13 @@
+import os
+import certifi
 import json
 import threading
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import queue
+
+os.environ["SSL_CERT_FILE"] = certifi.where()
+
 
 from config import globalVar
 
@@ -17,6 +22,11 @@ class Agent(threading.Thread):
 
         self.projects = []
         self._say_fns = {}  # project -> say fn
+
+        # own identity (filled in _load_mappings) — used to ignore our own posts
+        self.bot_user_id = None
+        self.bot_id = None
+        self._seen_ts = set()  # dedupe events delivered via >1 listener
 
         globalVar.slack_msg_process_queue[self.name] = queue.Queue()
         globalVar.slack_msg_response_queue[self.name] = queue.Queue()
@@ -40,8 +50,13 @@ class Agent(threading.Thread):
                 for ch in page["channels"]:
                     self.channel_name[ch["id"]] = ch["name"]
 
+            auth = self.app.client.auth_test()
+            self.bot_user_id = auth.get("user_id")
+            self.bot_id = auth.get("bot_id")
+
             print(
-                f"[{self.name}] Loaded {len(self.user_email)} users, {len(self.channel_name)} channels"
+                f"[{self.name}] Loaded {len(self.user_email)} users, {len(self.channel_name)} channels "
+                f"(bot_user_id={self.bot_user_id})"
             )
         except Exception as e:
             print(f"[{self.name}] Failed to load mappings: {e}")
@@ -53,7 +68,30 @@ class Agent(threading.Thread):
             self.projects.append(project)
 
     def _process(self, event, say):
-        project = "project-test-1"  # TODO
+        # ignore our own posts (by user id or bot id) so the agent never
+        # reacts to itself and loops. NOTE: messages from *other* agents are
+        # still processed — only self is dropped.
+        if event.get("user") == self.bot_user_id or (
+            self.bot_id and event.get("bot_id") == self.bot_id
+        ):
+            return
+        # ignore edits/deletes/joins and other non-message system events
+        if event.get("subtype") in {
+            "message_changed", "message_deleted", "channel_join", "channel_leave",
+        }:
+            return
+        # dedupe: a human @mention fires both app_mention and message listeners
+        ts = event.get("ts")
+        if ts:
+            if ts in self._seen_ts:
+                return
+            self._seen_ts.add(ts)
+            if len(self._seen_ts) > 2000:
+                self._seen_ts.clear()
+
+        print(f"\n\n######\n{event}\n######\n\n")
+        # project = "project-test-1"  # TODO
+        project = "gamified-trading-cards"  # TODO
 
         if project not in self.projects:
             self.initate_new_project(project)
@@ -75,9 +113,8 @@ class Agent(threading.Thread):
 
         @self.app.event("message")
         def handle(event, say):
-            # if event.get("bot_id") or event.get("subtype"):
-            #     return
-
+            # only the lead listens to every channel message; self/dedupe/system
+            # filtering is handled inside _process()
             if self.name in ["project_lead"]:
                 self._process(event, say)
 
