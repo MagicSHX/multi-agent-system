@@ -39,7 +39,8 @@ class ProjectCenter:
 
 
 if __name__ == "__main__":
-    project = ProjectCenter("project-test-1")
+    # project = ProjectCenter("project-test-1")
+    project = ProjectCenter("gamified-trading-cards")
     print(f"Project name: {project.name}")
     print(f"Created at: {project.created_at}")
     print(f"One pager content:\n{project.one_pager}")
