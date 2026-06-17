@@ -4,9 +4,13 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import queue
 import traceback
+from datetime import datetime
 
 from config import globalVar
+import certifi
+import os
 
+os.environ["SSL_CERT_FILE"] = certifi.where()
 
 class SlackBot(threading.Thread):
     def __init__(self, name, bot_token, app_token, keywords):
@@ -18,6 +22,7 @@ class SlackBot(threading.Thread):
 
         self.projects = []
         self._say_fns = {}  # project -> say fn
+        self._seen_ts = set()  # dedupe events delivered via >1 listener
 
         globalVar.slack_msg_process_queue[self.name] = queue.Queue()
         globalVar.slack_msg_response_queue[self.name] = queue.Queue()
@@ -26,7 +31,7 @@ class SlackBot(threading.Thread):
 
         print(f"[{self.name}] Bot User ID: {self.bot_user_id}")
         self._load_mappings()
-        self.testing_projects = ["project-test-1"]  # TODO: remove this hardcoded testing project list
+        self.testing_projects = ["gamified-trading-cards-1"]  # TODO: remove this hardcoded testing project list
 
 
     def _get_bot_user_id(self):
@@ -66,6 +71,19 @@ class SlackBot(threading.Thread):
 
     def _process(self, event, say):
         slack_user_id_sender = event.get("user", "")
+        # never react to our own posts — Slack echoes the bot's own messages back
+        # as events; without this the agent processes itself and loops/re-thinks.
+        if slack_user_id_sender == self.bot_user_id:
+            return
+
+        # dedupe: a single message can arrive via both app_mention and message
+        ts = event.get("ts")
+        if ts:
+            if ts in self._seen_ts:
+                return
+            self._seen_ts.add(ts)
+            if len(self._seen_ts) > 2000:
+                self._seen_ts.clear()
         slack_channel_id = event.get("channel", "")
         slack_channel_name = self.slack_channel_id_name_mapping[slack_channel_id]
         project = slack_channel_name
@@ -83,17 +101,54 @@ class SlackBot(threading.Thread):
         event["slack_user_name_sender_name"] = slack_user_name_sender
         event["slack_channel_name"] = slack_channel_name
 
-        print(f"[{self.name}] received event: {event}")
+        # was this bot directly addressed? robust to the app_mention/message
+        # dedupe race — the message event won't have type "app_mention", but its
+        # text still contains our mention token.
+        event["is_mention"] = (
+            event.get("type") == "app_mention"
+            or f"<@{self.bot_user_id}>" in event.get("text", "")
+        )
+
         globalVar.slack_msg_process_queue[self.name].put(event)
 
     def slack_msg_receive(self):
         @self.app.event("app_mention")
         def handle_mention(event, say):
-            # print(f"[{self.name}] mentioned:", event)
+            print(f"[{self.name}] received event: {event}")
             self._process(event, say)
 
         @self.app.event("message")
         def handle(event, say):
+
+            # record every channel message ONCE into shared global memory.
+            # all agent bots receive the same event, so dedupe across bots by ts.
+            ts = event.get("ts")
+            if ts and ts not in globalVar.global_memory_seen_ts:
+                globalVar.global_memory_seen_ts.add(ts)
+                slack_channel_id = event.get("channel", "")
+                slack_channel_name = self.slack_channel_id_name_mapping.get(slack_channel_id)
+                if slack_channel_name:
+                    formatted_msg = f"message by: {event.get('user')}: {event.get('text')}"
+                    globalVar.global_memory.setdefault(slack_channel_name, []).append(formatted_msg)
+                    # snapshot current global memory to a timestamped log file
+                    ts_label = datetime.now().strftime("%H%M%S_%d%m%y")
+                    os.makedirs("logs", exist_ok=True)
+                    log_path = f"logs/current_global-memory_{ts_label}.log"
+                    with open(log_path, "w", encoding="utf-8") as f:
+                        json.dump(
+                            globalVar.global_memory[slack_channel_name],
+                            f,
+                            indent=2,
+                            ensure_ascii=False,
+                        )
+
+
+            # humans reach agents via plain messages; agents reach each other via
+            # @mentions (handled by app_mention above). Ignore bot and system
+            # (edit/delete/join) messages on this path so an agent never reacts
+            # to its own or another bot's posts here.
+            if event.get("bot_id") or event.get("subtype"):
+                return
             self._process(event, say)
 
     def slack_msg_send(self):
