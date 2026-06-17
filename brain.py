@@ -4,6 +4,15 @@ from pathlib import Path
 from skill import Skill, SkillCenter
 import traceback
 
+# Deliverable convention: skill prompts (layered onto `role` in run()) are
+# expected to wrap any finished deliverable — a report, draft, doc, etc. that
+# the agent is producing as output rather than just discussing — in
+#   <deliverable name="...">...full text...</deliverable>
+# This is the "lead plan" signal that tells summarise_for_memory() a document's
+# full latest content should be captured. run() does not need to special-case
+# skills; it only needs to know the tag exists so it can pass the raw reply
+# (which still contains the tag) through to summarise_for_memory() untouched.
+
 
 class AgentBrain:
     """
@@ -88,6 +97,14 @@ class AgentBrain:
         Called *after* the reply is already sent to Slack, so latency doesn't
         matter.
 
+        If agent_reply contains <deliverable name="...">...</deliverable> tags
+        (see module docstring), the matching documents entry's `content` field
+        is overwritten with that deliverable's full latest text, copied
+        verbatim by the cheap model. Note: relying on a cheap model to
+        reproduce long text losslessly inside JSON carries real risk of
+        truncation, escaping issues, or unintended paraphrasing — this is a
+        known tradeoff of this approach and worth monitoring in practice.
+
         Args:
             user_message: Raw user message text (no context appended).
             agent_reply:  The reply that was just sent to Slack.
@@ -100,10 +117,38 @@ class AgentBrain:
         """
         system = (
             "You are a memory summariser for an AI agent. "
-            "Given existing memory bullets, a new user message, and the agent's reply, "
-            "return ONLY a JSON array of concise bullet strings representing the updated memory. "
-            "Merge, update, or drop bullets as needed to keep the list tight and useful. "
-            "No preamble, no markdown fences, no explanation — just the JSON array."
+            "Given the existing memory JSON, a new user message, and the agent's reply, "
+            "return ONLY an updated JSON object with this shape:\n\n"
+            "{\n"
+            '  "project_info": {"name": "", "goal": "", "constraints": []},\n'
+            '  "documents": [{"name": "", "status": "", "notes": null, "content": null}],\n'
+            '  "action_items": [{"task": "", "owner": null, "status": ""}],\n'
+            '  "decisions": [],\n'
+            '  "info": []\n'
+            "}\n\n"
+            "Rules:\n"
+            "1. documents: NEVER drop an entry once added. If a document is referenced again, update "
+            "its existing entry (status, notes) in place rather than duplicating it. Keep names exact "
+            "as referenced — never paraphrase or shorten a document's name.\n"
+            "2. action_items: NEVER silently delete. Update status as it changes. Only remove an item "
+            "if it's clearly done and no longer relevant to future steps.\n"
+            "3. decisions: append-only list of locked-in choices, scope, and constraints. Add new "
+            "entries; don't reword or remove existing ones unless explicitly reversed or contradicted.\n"
+            "4. info: the only section you should freely merge, reword, or prune for brevity.\n"
+            "5. project_info: update fields in place as new information arrives; don't lose prior "
+            "constraints unless contradicted by new info.\n"
+            "6. If unsure which category something belongs to, prefer documents or decisions over "
+            "info — when in doubt, don't compress it away.\n"
+            "7. content field: if the agent reply contains one or more "
+            '<deliverable name="...">...</deliverable> tags, find or create the documents entry '
+            "whose name matches the tag's name attribute, and set its content field to the exact, "
+            "complete text inside that tag — copied verbatim, with no paraphrasing, summarising, "
+            "reformatting, or truncation. This OVERWRITES any previous content for that name (the "
+            "field always holds only the latest version). If a documents entry has no deliverable "
+            "tag associated with it in this turn, leave its existing content field untouched. If a "
+            "document has never had a deliverable tag, content stays null. Do not invent a "
+            "deliverable tag or content that was not present in the agent reply.\n"
+            "No preamble, no markdown fences, no explanation — just the JSON object."
         )
         user_input = (
             f"Existing memory: {json.dumps(existing_memory)}\n"
@@ -126,10 +171,12 @@ class AgentBrain:
                 .removesuffix("```")
                 .strip()
             )
-            bullets = json.loads(cleaned)
-            if isinstance(bullets, list):
-                return bullets
-            raise ValueError("Expected a JSON array")
+            memory = json.loads(cleaned)
+            if isinstance(memory, dict) and {
+                "project_info", "documents", "action_items", "decisions", "info"
+            }.issubset(memory.keys()):
+                return memory
+            raise ValueError("Expected a JSON object with the memory schema keys")
         except (json.JSONDecodeError, ValueError) as e:
             print(
                 f"[{self.name}] memory summarisation parse failed: {traceback.format_exc()} — keeping existing memory"

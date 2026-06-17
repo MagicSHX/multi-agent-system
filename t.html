@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=600" />
+  <title>Acme Markets Trading Card</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 600px;
+      height: 900px;
+      background: linear-gradient(160deg, #0d1b2a 0%, #1b2a3b 50%, #0d1b2a 100%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #ffffff;
+      overflow: hidden;
+    }
+
+    .card {
+      width: 600px;
+      height: 900px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 36px 40px 40px;
+      border: 2px solid #f5c518;
+      position: relative;
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      color: #f5c518;
+      text-transform: uppercase;
+    }
+
+    .asset-class {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #aac4e0;
+      text-transform: uppercase;
+      border: 1px solid #aac4e0;
+      padding: 3px 10px;
+      border-radius: 3px;
+    }
+
+    .rating-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .rating-label {
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: #aac4e0;
+      text-transform: uppercase;
+    }
+
+    .rating-value {
+      font-size: 110px;
+      font-weight: 900;
+      color: #f5c518;
+      line-height: 1;
+      text-shadow: 0 0 40px rgba(245, 197, 24, 0.4);
+    }
+
+    .archetype-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .archetype-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: #aac4e0;
+      text-transform: uppercase;
+    }
+
+    .archetype-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .divider {
+      width: 80%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #f5c518, transparent);
+    }
+
+    .stats {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-name {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      color: #aac4e0;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .stat-value.highlight {
+      color: #f5c518;
+    }
+
+    .bar-container {
+      width: 100%;
+      padding: 0 8px;
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      background: linear-gradient(90deg, #f5c518, #ffdd57);
+    }
+
+    .card::before,
+    .card::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: #f5c518;
+      border-style: solid;
+    }
+
+    .card::before {
+      top: 8px;
+      left: 8px;
+      border-width: 2px 0 0 2px;
+    }
+
+    .card::after {
+      bottom: 8px;
+      right: 8px;
+      border-width: 0 2px 2px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <div class="header">
+      <span class="brand">Acme Markets</span>
+      <span class="asset-class">Crypto</span>
+    </div>
+
+    <div class="rating-block">
+      <span class="rating-label">Overall Rating</span>
+      <span class="rating-value">74</span>
+    </div>
+
+    <div class="archetype-block">
+      <span class="archetype-label">Play Style</span>
+      <span class="archetype-value">High-Conviction Accumulator</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="stats">
+      <div class="stat-row">
+        <span class="stat-name">Win Rate</span>
+        <span class="stat-value highlight">63.4%</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-name">Trades</span>
+        <span class="stat-value">47</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-name">Assets</span>
+        <span class="stat-value">5</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-name">Active Since</span>
+        <span class="stat-value">Jan 2026</span>
+      </div>
+    </div>
+
+    <div class="bar-container">
+      <div class="bar-track">
+        <!-- bar fill: (74 - 40) / 59 * 100 = 57.6% -->
+        <div class="bar-fill" style="width: 57.6%;"></div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
