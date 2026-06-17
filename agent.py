@@ -8,7 +8,7 @@ from llm import LLMCenter
 from skill import Skill, SkillCenter
 from brain import AgentBrain
 from config import globalVar
-
+from utils.utils import json_exporter
 
 # Slack user IDs of the agents — mirrors the roster in agents/project_lead.yaml.
 # Used to (a) avoid greeting/re-pinging a bot sender and (b) cap each outgoing
@@ -118,6 +118,11 @@ class Agent(threading.Thread):
                     self.memory[project] = []
                 self.memory[project].append(event)
 
+                json_exporter(
+                    self.memory[project],
+                    f"memory/full/{self.name}_{project}_memory.json",
+                )
+
                 # step 4 — cheap model: condense into summarised memory bullets
                 self.summarised_project_memory[
                     project
@@ -126,6 +131,10 @@ class Agent(threading.Thread):
                     agent_reply=reply or "",
                     existing_memory=self.summarised_project_memory.get(project, []),
                     project=project,
+                )
+                json_exporter(
+                    self.summarised_project_memory[project],
+                    f"memory/summary/{self.name}_{project}_memory.json",
                 )
 
             except Exception as e:

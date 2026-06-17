@@ -225,3 +225,5 @@ open-router-api-key.json
 open-router-api-key-HX.json
 
 logs/*
+
+memory/*
