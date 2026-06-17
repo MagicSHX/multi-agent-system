@@ -59,8 +59,6 @@ class Agent(threading.Thread):
         self.memory = {}  # raw event history per project
         self.summarised_project_memory = {}  # cheap-model condensed bullets per project
 
-        self.testing_projects = ["project-test-1"]  # TODO: remove this hardcoded testing project list
-
     # TODO: later need to scale up at project and task level, not just one global memory for the agent. Now, if there are multiple projects, the brain handling is in sequence, not in parallel.
     def process(self):
         """Drain this agent's process queue, run through brain, push to response queue."""
@@ -79,9 +77,6 @@ class Agent(threading.Thread):
                 sender_user_id = event.get("user")
                 # project = "project-test-1"  # TODO
                 project = event["slack_channel_name"]
-
-                if project not in self.testing_projects:
-                    continue  # TODO: remove this hardcoded testing project filter
 
                 project_context = globalVar.project_context.get(project)
 

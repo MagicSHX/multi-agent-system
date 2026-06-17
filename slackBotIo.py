@@ -26,6 +26,8 @@ class SlackBot(threading.Thread):
 
         print(f"[{self.name}] Bot User ID: {self.bot_user_id}")
         self._load_mappings()
+        self.testing_projects = ["project-test-1"]  # TODO: remove this hardcoded testing project list
+
 
     def _get_bot_user_id(self):
         response = self.app.client.auth_test()
@@ -67,8 +69,11 @@ class SlackBot(threading.Thread):
         slack_channel_id = event.get("channel", "")
         slack_channel_name = self.slack_channel_id_name_mapping[slack_channel_id]
         project = slack_channel_name
-        # TODO: handle missing mapping, maybe reload mappings
 
+        if project not in self.testing_projects:
+            return  # TODO: remove this hardcoded testing project filter
+        
+        # TODO: handle missing mapping, maybe reload mappings
         if project not in self.projects:
             self.projects.append(project)
 
