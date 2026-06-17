@@ -15,6 +15,7 @@ if not hasattr(globalVar, "llm_cost_tracker") or globalVar.llm_cost_tracker is N
 # ── Config ────────────────────────────────────────────────────────────────────
 from utils.utils import json_parser
 
+# open_router_config = json_parser(Path("open-router-api-key.json"))
 open_router_config = json_parser(Path("open-router-api-key.json"))
 OPENROUTER_API_KEY = open_router_config["OPENROUTER_API_KEY"]
 OPENROUTER_BASE_URL = open_router_config["OPENROUTER_BASE_URL"]

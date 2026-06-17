@@ -8,6 +8,7 @@ class Skill(Enum):
     REASONING = "reasoning"
     CREATIVE = "creative"
     QUICK = "quick"
+    REPLY_NOT_REQUIRED = "reply_not_required"
 
 
 class SkillCenter:

@@ -3,11 +3,12 @@ import threading
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import queue
+import traceback
 
 from config import globalVar
 
 
-class Agent(threading.Thread):
+class SlackBot(threading.Thread):
     def __init__(self, name, bot_token, app_token, keywords):
         super().__init__(daemon=True)
         self.name = name
@@ -21,65 +22,74 @@ class Agent(threading.Thread):
         globalVar.slack_msg_process_queue[self.name] = queue.Queue()
         globalVar.slack_msg_response_queue[self.name] = queue.Queue()
 
+        self.bot_user_id = self._get_bot_user_id()
+
+        print(f"[{self.name}] Bot User ID: {self.bot_user_id}")
         self._load_mappings()
+
+    def _get_bot_user_id(self):
+        response = self.app.client.auth_test()
+        print(f"[{self.name}] auth_test response: {response}")
+        return response["user_id"]
 
     def _load_mappings(self):
         try:
-            self.user_email = {}
+            self.slack_user_id_name_mapping = {}
+            self.slack_channel_id_name_mapping = {}
+
             for page in self.app.client.users_list():
                 for member in page["members"]:
-                    profile = member.get("profile", {})
-                    email = profile.get("email")
-                    if email:
-                        self.user_email[member["id"]] = email
+                    id = member.get("id")
+                    real_name = member.get("real_name")
+                    if real_name:
+                        self.slack_user_id_name_mapping[id] = real_name
 
-            self.channel_name = {}
             for page in self.app.client.conversations_list(
                 types="public_channel,private_channel"
             ):
                 for ch in page["channels"]:
-                    self.channel_name[ch["id"]] = ch["name"]
+                    self.slack_channel_id_name_mapping[ch["id"]] = ch["name"]
 
             print(
-                f"[{self.name}] Loaded {len(self.user_email)} users, {len(self.channel_name)} channels"
+                f"[{self.name}] Loaded {len(self.slack_user_id_name_mapping)} users, {len(self.slack_channel_id_name_mapping)} channels"
             )
         except Exception as e:
-            print(f"[{self.name}] Failed to load mappings: {e}")
-            self.user_email = {}
-            self.channel_name = {}
+            print(f"[{self.name}] Failed to load mappings: {traceback.format_exc()}")
+            self.slack_user_id_name_mapping = {}
+            self.slack_channel_id_name_mapping = {}
 
-    def initate_new_project(self, project):
+    # def initate_new_project(self, project):
+    #     if project not in self.projects:
+    #         self.projects.append(project)
+
+    def _process(self, event, say):
+        slack_user_id_sender = event.get("user", "")
+        slack_channel_id = event.get("channel", "")
+        slack_channel_name = self.slack_channel_id_name_mapping[slack_channel_id]
+        project = slack_channel_name
+        # TODO: handle missing mapping, maybe reload mappings
+
         if project not in self.projects:
             self.projects.append(project)
 
-    def _process(self, event, say):
-        project = "project-test-1"  # TODO
-
-        if project not in self.projects:
-            self.initate_new_project(project)
-
         self._say_fns[project] = say
 
-        user_id = event.get("user", "")
-        channel_id = event.get("channel", "")
-        event["user_email"] = self.user_email.get(user_id, "")
-        event["channel_name"] = self.channel_name.get(channel_id, "")
+        slack_user_name_sender = self.slack_user_id_name_mapping[slack_user_id_sender]
+        event["slack_user_name_sender_name"] = slack_user_name_sender
+        event["slack_channel_name"] = slack_channel_name
 
+        print(f"[{self.name}] received event: {event}")
         globalVar.slack_msg_process_queue[self.name].put(event)
 
     def slack_msg_receive(self):
         @self.app.event("app_mention")
         def handle_mention(event, say):
-            print(f"[{self.name}] mentioned:", event)
+            # print(f"[{self.name}] mentioned:", event)
             self._process(event, say)
 
         @self.app.event("message")
         def handle(event, say):
-            # if event.get("bot_id") or event.get("subtype"):
-            #     return
-
-            if self.name in ["project_lead"]:
-                self._process(event, say)
+            self._process(event, say)
 
     def slack_msg_send(self):
         while True:
@@ -109,12 +119,12 @@ class Agent(threading.Thread):
 
 
 if __name__ == "__main__":
-    with open("agents.json") as f:
-        config = json.load(f)
+    with open("slack-bot-config.json") as f:
+        config_slack_bot = json.load(f)
 
-    agents = [
-        Agent(a["name"], a["bot_token"], a["app_token"], a["keywords"])
-        for a in config["agents"]
+    slackBots = [
+        SlackBot(a["name"], a["bot_token"], a["app_token"], a["keywords"])
+        for a in config_slack_bot["agents"][:1]
     ]
 
     threading.Event().wait()
