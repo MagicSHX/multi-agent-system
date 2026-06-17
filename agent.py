@@ -67,8 +67,12 @@ class Agent(threading.Thread):
             try:
                 slack_user_name_sender_name = event["slack_user_name_sender_name"]
                 reply_required = True
-                if slack_user_name_sender_name == self.name:
-                    reply_required = False
+                # if slack_user_name_sender_name == self.name:
+                #     reply_required = False
+                # self-messages are already dropped in SlackBot._process (by
+                # bot_user_id), so no name-based self-check is needed here. Gate
+                # only by role: non-lead agents act when @mentioned (app_mention),
+                # not on every plain channel message.
 
                 if (event["type"] == "message") and (self.name not in ["lead-agent"]):
                     reply_required = False
@@ -82,14 +86,22 @@ class Agent(threading.Thread):
 
                 # step 1 — good model: classify + run skill, plain string reply
                 # prefer summarised memory if available, fall back to raw history
-                memory_for_context = self.summarised_project_memory.get(
-                    project, self.memory.get(project, [])
-                )  # TODO: sometimes, it is in a list, sometimes in str
+                # memory_for_context = self.memory.get(
+                #     project, []
+                # )  # TODO: sometimes, it is in a list, sometimes in str
+                memory_for_context = globalVar.global_memory.get(project)
+                
                 reply = None
                 if reply_required == True:
                     resolved_skill = self.brain._classify(text)
                     if resolved_skill.value == "reply_not_required":
-                        reply_required = False
+                        # if we were directly addressed (e.g. "APPROVED @lead-agent"),
+                        # the message DOES need action — don't go silent; reason about
+                        # the next step. Only stay silent on undirected chatter.
+                        if event.get("is_mention"):
+                            resolved_skill = Skill.REASONING
+                        else:
+                            reply_required = False
 
                 if reply_required:
                     # TODO: make one_pager as by default first memory for the agent in the project
@@ -97,7 +109,7 @@ class Agent(threading.Thread):
                         user_input=(
                             # f"slack message received: {text}; sender: {slack_user_name_sender_name}; receiver: {self.name}; project context: project one pager: {project_context.one_pager}; "
                             f"slack message details received: {event}; sender: {slack_user_name_sender_name}; receiver: {self.name}; project context: project one pager: {project_context.one_pager}; "
-                            f"current agent project memory: {memory_for_context}"
+                            f"full channel project memory: {memory_for_context}"
                         ),
                         skill=resolved_skill,
                     )
@@ -124,19 +136,19 @@ class Agent(threading.Thread):
                     f"memory/full/{self.name}_{project}_memory.json",
                 )
 
-                # step 4 — cheap model: condense into summarised memory bullets
-                self.summarised_project_memory[
-                    project
-                ] = self.brain.summarise_for_memory(
-                    user_message=text,
-                    agent_reply=reply or "",
-                    existing_memory=self.summarised_project_memory.get(project, []),
-                    project=project,
-                )
-                json_exporter(
-                    self.summarised_project_memory[project],
-                    f"memory/summary/{self.name}_{project}_memory.json",
-                )
+                # # step 4 — cheap model: condense into summarised memory bullets
+                # self.summarised_project_memory[
+                #     project
+                # ] = self.brain.summarise_for_memory(
+                #     user_message=text,
+                #     agent_reply=reply or "",
+                #     existing_memory=self.summarised_project_memory.get(project, []),
+                #     project=project,
+                # )
+                # json_exporter(
+                #     self.summarised_project_memory[project],
+                #     f"memory/summary/{self.name}_{project}_memory.json",
+                # )
 
             except Exception as e:
                 print(

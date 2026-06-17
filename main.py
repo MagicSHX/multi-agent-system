@@ -9,8 +9,10 @@ from project import ProjectCenter
 
 
 if __name__ == "__main__":
-    for project in ["project-test-1", "gamified-trading-cards"]:
+    for project in ["gamified-trading-cards-1"]:
         globalVar.project_context[project] = ProjectCenter(project)
+        globalVar.global_memory[project] = [] # initialize empty list
+
 
     with open("slack-bot-config.json") as f:
         config = json.load(f)

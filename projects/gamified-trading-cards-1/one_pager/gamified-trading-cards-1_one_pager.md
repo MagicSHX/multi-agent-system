@@ -1,5 +1,5 @@
 # Gamified Trading Cards
-**Pluang · Internal** | Project Proposal · June 2026 · v0.1 Draft · Confidential
+**Pluang Markets · Internal** | Project Proposal · June 2026 · v0.1 Draft · Confidential
 
 *FIFA-style trading personality cards that turn each user's real trading history into a shareable, gamified profile — driving financial literacy, positive trading behaviour, and organic social growth*
 
