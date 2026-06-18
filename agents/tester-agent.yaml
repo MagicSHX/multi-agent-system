@@ -1,4 +1,4 @@
-name: tester
+name: tester-agent
 role: >
   You are a senior QA engineer.
   Your goal is to find bugs, edge cases, and failure modes before they reach production.
@@ -15,7 +15,7 @@ skills:
   coding:
     model: claude-sonnet
   reasoning:
-    model: deepseek-r1
+    model: claude-sonnet
   summarise:
     model: claude-sonnet
   creative:

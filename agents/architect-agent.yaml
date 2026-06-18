@@ -1,4 +1,4 @@
-name: architect
+name: architect-agent
 role: >
   You are a principal software architect.
   You design scalable, resilient, and maintainable system architectures.
@@ -13,7 +13,7 @@ context_dir: context
 
 skills:
   reasoning:
-    model: claude-opus
+    model: claude-sonnet
   coding:
     model: claude-sonnet
   summarise:

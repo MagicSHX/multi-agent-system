@@ -219,9 +219,9 @@ __marimo__/
 
 test-*
 
-slack-bot-config.json
+slack-bot-config*.json
 
-open-router-api-key.json
+open-router-api-key*.json
 
 logs/*
 
@@ -236,3 +236,5 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .DS_Store
+
+memory/*

@@ -2,6 +2,7 @@ import json
 import yaml
 from pathlib import Path
 from skill import Skill, SkillCenter
+import traceback
 
 
 class AgentBrain:
@@ -38,13 +39,11 @@ class AgentBrain:
         system = (
             "You are a task classifier. "
             f"Classify the user input into exactly one of these skills: {skill_names}. "
-            "Reply with only the skill name, nothing else."
+            "Reply with only the skill name, nothing else. And if the received msg doesn't require any action item or taks or reply, return reply_not_required."
         )
         print(f"[{self.name}] classifying task...")
         result = self.llm.complete(
-            model=self.classifier_model,
-            system=system,
-            user_input=classify_input,
+            model=self.classifier_model, system=system, user_input=classify_input,
         )
         return Skill(result.strip().lower())
 
@@ -81,11 +80,7 @@ class AgentBrain:
         return self.llm.stream(model=model, system=system, user_input=user_input)
 
     def summarise_for_memory(
-        self,
-        user_message: str,
-        agent_reply: str,
-        existing_memory: list,
-        project: str,
+        self, user_message: str, agent_reply: str, existing_memory: list, project: str,
     ) -> list:
         """Condense one exchange into updated memory bullets.
 
@@ -124,13 +119,21 @@ class AgentBrain:
         )
 
         try:
-            cleaned = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+            cleaned = (
+                raw.strip()
+                .removeprefix("```json")
+                .removeprefix("```")
+                .removesuffix("```")
+                .strip()
+            )
             bullets = json.loads(cleaned)
             if isinstance(bullets, list):
                 return bullets
             raise ValueError("Expected a JSON array")
         except (json.JSONDecodeError, ValueError) as e:
-            print(f"[{self.name}] memory summarisation parse failed: {e} — keeping existing memory")
+            print(
+                f"[{self.name}] memory summarisation parse failed: {traceback.format_exc()} — keeping existing memory"
+            )
             return existing_memory
 
 
@@ -143,7 +146,9 @@ if __name__ == "__main__":
     llm = LLMCenter()
     skills = SkillCenter()
 
-    researcher = AgentBrain(llm=llm, skills=skills, config_path="agent/researcher.yaml")
+    researcher = AgentBrain(
+        llm=llm, skills=skills, config_path="agent/research-agent.yaml"
+    )
 
     # Auto-classify — haiku decides the skill, then routes to the right model
     answer = researcher.run("What are the implications of Gödel's theorems?")
