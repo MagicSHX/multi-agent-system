@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ *
- * Agent Studio — hackathon POC frontend (pure mock, no backend).
+ * Agent Centre — hackathon POC frontend (pure mock, no backend).
  * All state is in memory. The ONE place that talks to a backend later
  * is handleLaunch() — see the TODO seam marked below.
  * ------------------------------------------------------------------ */
@@ -222,7 +222,7 @@ function Sidebar({ view, setView, onBuild }) {
     <aside className="as-side">
       <div className="as-brand">
         <span className="as-logo"><Hexagon size={16} /></span>
-        Agent Studio
+        Agent Centre
       </div>
       <nav className="as-navgroup">
         <Item id="dashboard" icon={LayoutDashboard} label="Dashboard" />
@@ -802,9 +802,10 @@ html,body{ margin:0; }
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; color:var(--text);
   -webkit-font-smoothing:antialiased; line-height:1.45;
   min-height:100vh; padding:24px; background:var(--page);
+  zoom:1.25;
   display:flex; justify-content:center; align-items:flex-start; }
 .as-root *{ box-sizing:border-box; }
-.as-shell{ display:flex; min-height:600px; height:calc(100vh - 48px); width:100%; max-width:1100px;
+.as-shell{ display:flex; min-height:600px; height:calc((100vh - 48px) / 1.25); width:100%; max-width:1100px;
   background:var(--page); border:0.5px solid var(--line); border-radius:14px; overflow:hidden; }
 .as-side{ width:188px; flex-shrink:0; background:var(--bg2); border-right:0.5px solid var(--line);
   padding:16px 12px; display:flex; flex-direction:column; gap:4px; }
