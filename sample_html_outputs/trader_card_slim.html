@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Trading Card — High-Conviction Accumulator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0d0d1a; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Segoe UI', Arial, sans-serif; }
+    .card { width: 600px; height: 400px; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; background: linear-gradient(160deg, #1a1a3e 0%, #0b2a4a 50%, #0d1f14 100%); border: 2px solid #2e6bbf; box-shadow: 0 0 40px rgba(46,107,191,0.45), inset 0 0 60px rgba(0,0,0,0.4); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px 14px; background: linear-gradient(90deg, rgba(46,107,191,0.35) 0%, transparent 100%); border-bottom: 1px solid rgba(46,107,191,0.4); }
+    .asset-class { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #5ba3f5; }
+    .archetype-name { font-size: 20px; font-weight: 800; color: #fff; text-shadow: 0 0 12px rgba(91,163,245,0.5); margin-top: 2px; }
+    .rating-badge { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 72px; height: 72px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #2e6bbf, #0b1e40); border: 3px solid #5ba3f5; box-shadow: 0 0 18px rgba(91,163,245,0.6); flex-shrink: 0; }
+    .rating-value { font-size: 28px; font-weight: 900; color: #fff; line-height: 1; }
+    .rating-label { font-size: 8px; letter-spacing: 1px; text-transform: uppercase; color: #a0c4ff; margin-top: 1px; }
+    .card-body { flex: 1; display: flex; align-items: center; padding: 14px 24px; gap: 12px; }
+    .trait-card { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(91,163,245,0.25); border-radius: 10px; padding: 12px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+    .trait-icon { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #2e6bbf, #0b2a4a); border: 1.5px solid #5ba3f5; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .trait-display { font-size: 12px; font-weight: 700; color: #e8f0ff; }
+    .trait-tag { font-size: 9px; color: #5ba3f5; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; background: rgba(91,163,245,0.1); border-radius: 4px; padding: 2px 6px; }
+    .card-footer { display: flex; align-items: center; justify-content: space-around; padding: 10px 24px 14px; background: linear-gradient(90deg, rgba(0,0,0,0.35), rgba(11,42,74,0.2)); border-top: 1px solid rgba(46,107,191,0.3); }
+    .stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .stat-value { font-size: 18px; font-weight: 800; color: #fff; line-height: 1; }
+    .stat-value.hl { color: #5ba3f5; text-shadow: 0 0 8px rgba(91,163,245,0.5); }
+    .stat-label { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: #6a8aaa; white-space: nowrap; }
+    .footer-token { font-size: 9px; color: #344a62; letter-spacing: 1px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="asset-class">crypto · trader card</div>
+        <div class="archetype-name">High-Conviction Accumulator</div>
+      </div>
+      <div class="rating-badge">
+        <span class="rating-value">72</span>
+        <span class="rating-label">Rating</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="trait-card">
+        <div class="trait-icon">🎯</div>
+        <span class="trait-display">Goes Deep</span>
+        <span class="trait-tag">Concentrated</span>
+      </div>
+      <div class="trait-card">
+        <div class="trait-icon">⚡</div>
+        <span class="trait-display">Sharp Entry</span>
+        <span class="trait-tag">High Win Rate</span>
+      </div>
+      <div class="trait-card">
+        <div class="trait-icon">💎</div>
+        <span class="trait-display">BTC Loyalist</span>
+        <span class="trait-tag">Top Asset: BTC</span>
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="stat"><span class="stat-value hl">60%</span><span class="stat-label">Win Rate</span></div>
+      <div class="stat"><span class="stat-value">30</span><span class="stat-label">Trades</span></div>
+      <div class="stat"><span class="stat-value hl">80%</span><span class="stat-label">Top-3 Conc.</span></div>
+      <div class="stat"><span class="stat-value">BTC</span><span class="stat-label">Top Asset</span></div>
+      <div class="stat"><span class="stat-value">90d</span><span class="stat-label">Window</span></div>
+      <span class="footer-token">a3f9c12b8e41</span>
+    </div>
+  </div>
+</body>
+</html>
