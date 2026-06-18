@@ -29,6 +29,10 @@ const initials = (name) =>
   name.split(/\s+/).slice(0, 2).map((w) => w[0]).join("").replace(/[^A-Za-z]/g, "").slice(0, 2) ||
   name.slice(0, 2);
 
+// derive a Slack channel name from a project name, e.g. "FX Dynamic Spread" -> "fx-dynamic-spread"
+const channelName = (name) =>
+  (name || "project").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "project";
+
 // --- seed data -----------------------------------------------------
 // Dummy agents mirroring the backend roles defined in /agents/*.yaml.
 // `simple` is the one-line description; `blurb` is the library card summary.
@@ -94,6 +98,7 @@ export default function AgentStudio() {
   const [projects, setProjects] = useState(SEED_PROJECTS);
   const [toast, setToast] = useState(null);
   const [rating, setRating] = useState(null); // project being rated
+  const [launched, setLaunched] = useState(null); // just-launched project, for the Slack popup
 
   const showToast = (msg) => {
     setToast(msg);
@@ -141,7 +146,8 @@ export default function AgentStudio() {
               onLaunch={(project) => {
                 setProjects((p) => [project, ...p]);
                 setView("dashboard");
-                showToast(`“${project.name}” launched — agents are on it.`);
+                // showToast(`“${project.name}” launched — agents are on it.`);
+                setLaunched(project);
               }}
             />
           )}
@@ -170,7 +176,37 @@ export default function AgentStudio() {
         />
       )}
 
+      {launched && (
+        <LaunchedModal project={launched} onClose={() => setLaunched(null)} />
+      )}
+
       {toast && <div className="as-toast"><Check size={16} /> {toast}</div>}
+    </div>
+  );
+}
+
+// --- project-launched popup (Slack hand-off) -----------------------
+function LaunchedModal({ project, onClose }) {
+  const channel = channelName(project.name);
+  // ===== BACKEND SEAM ============================================
+  // TODO(backend): use the real Slack workspace + channel IDs returned by the launch call.
+  const SLACK_TEAM_ID = "T0B9EBH7CBG/C0BC9CQ7HJL";   // <-- replace with your workspace ID
+  const slackUrl = `https://app.slack.com/client/${SLACK_TEAM_ID}`;
+  // ===============================================================
+  return (
+    <div className="as-overlay" onClick={onClose}>
+      <div className="as-modal as-launched" onClick={(e) => e.stopPropagation()}>
+        <button className="as-x as-launched-x" onClick={onClose} aria-label="Close"><X size={18} /></button>
+        <div className="as-launched-icon"><Rocket size={26} /></div>
+        <h2 className="as-h2" style={{ margin: "0 0 6px" }}>Project created</h2>
+        <p className="as-blurb" style={{ margin: 0 }}>
+          “{project.name}” has been created in Slack under
+        </p>
+        <p className="as-launched-channel">#{channel}</p>
+        <a className="as-launch as-launched-cta" href={slackUrl} target="_blank" rel="noreferrer" onClick={onClose}>
+          Click to go to Slack <ChevronRight size={16} />
+        </a>
+      </div>
     </div>
   );
 }
@@ -961,6 +997,14 @@ html,body{ margin:0; }
 .as-modal{ background:var(--bg); border-radius:14px; padding:22px 24px; width:100%; max-width:440px;
   border:0.5px solid var(--line); }
 .as-modal-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; }
+.as-launched{ position:relative; max-width:400px; text-align:center;
+  display:flex; flex-direction:column; align-items:center; padding:34px 28px 28px; }
+.as-launched-x{ position:absolute; top:14px; right:14px; }
+.as-launched-icon{ width:56px; height:56px; border-radius:50%; background:var(--p-soft); color:var(--p);
+  display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
+.as-launched-channel{ margin:10px 0 22px; font-size:20px; font-weight:600; color:var(--p-dark);
+  background:var(--p-soft); padding:8px 16px; border-radius:9px; letter-spacing:-.01em; }
+.as-launched-cta{ width:100%; justify-content:center; text-decoration:none; }
 .as-raterow{ display:flex; align-items:center; justify-content:space-between; gap:12px;
   border:0.5px solid var(--line); border-radius:11px; padding:11px 14px; }
 .as-raterow-left{ display:flex; align-items:center; gap:11px; }
