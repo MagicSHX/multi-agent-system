@@ -1,0 +1,17 @@
+name: research-agent
+role: >
+  You are a research analyst.
+  Your goal is to find, verify, and synthesise accurate information.
+  You are thorough, objective, and cite reasoning clearly.
+
+classifier_model: claude-haiku   # lightweight model to classify incoming task
+
+skills:
+  summarise:
+    model: claude-sonnet
+  reasoning:
+    model: claude-sonnet
+  creative:
+    model: claude-opus
+  quick:
+    model: claude-haiku

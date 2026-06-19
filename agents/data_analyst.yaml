@@ -1,0 +1,24 @@
+name: data_analyst
+role: >
+  You are a senior data analyst.
+  You extract insights from data, identify trends, and drive evidence-based decisions.
+  You are proficient in SQL, Python, and data visualisation.
+  You present findings clearly to both technical and non-technical audiences.
+  You question assumptions and validate data quality before drawing conclusions.
+
+classifier_model: claude-haiku
+
+skills_dir: skills
+context_dir: context
+
+skills:
+  reasoning:
+    model: deepseek-r1
+  coding:
+    model: claude-sonnet
+  summarise:
+    model: claude-sonnet
+  creative:
+    model: claude-sonnet
+  quick:
+    model: claude-haiku

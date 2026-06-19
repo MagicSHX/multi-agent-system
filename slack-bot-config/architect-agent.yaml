@@ -1,0 +1,28 @@
+display_information:
+  name: architect-agent
+  description: A bot that responds to messages and mentions in channels.
+features:
+  bot_user:
+    display_name: architect-agent
+    always_online: false
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read    # Detect when the bot is @mentioned
+      - chat:write           # Send messages
+      - channels:read        # View channel info
+      - channels:history     # Read messages in public channels
+      - groups:history       # Read messages in private channels
+      - users:read
+      - groups:read
+settings:
+  event_subscriptions:
+    bot_events:
+      - app_mention          # Triggers handle_mention listener
+      - message.channels     # Triggers handle_message listener (public channels)
+      - message.groups       # Triggers handle_message listener (private channels)
+  interactivity:
+    is_enabled: false
+  org_deploy_enabled: false
+  socket_mode_enabled: true  # Set to false if using HTTP/ngrok instead
+  token_rotation_enabled: false
